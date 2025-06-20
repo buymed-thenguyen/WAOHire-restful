@@ -6,7 +6,10 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"gopkg.in/yaml.v3"
 	"log"
+	"net/url"
 	"os"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -63,6 +66,12 @@ func Load() (*Config, error) {
 		return nil, errors.New("invalid config")
 	}
 
+	// fallback for deploy Railway
+	envURL := os.Getenv("DATABASE_URL")
+	if envURL != "" {
+		appConfig.Database = fallbackDBConfigForRailway(envURL)
+	}
+
 	authCfg = &appConfig.Auth
 	return appConfig, nil
 }
@@ -72,6 +81,27 @@ func (c DatabaseConfig) DSN() string {
 		"host=%s user=%s password=%s dbname=%s port=%d sslmode=%s",
 		c.Host, c.User, c.Password, c.DBName, c.Port, c.SSLMode,
 	)
+}
+
+func fallbackDBConfigForRailway(envURL string) DatabaseConfig {
+	u, err := url.Parse(envURL)
+	if err != nil {
+		return DatabaseConfig{}
+	}
+
+	password, _ := u.User.Password()
+	return DatabaseConfig{
+		Host:     u.Hostname(),
+		Port:     parsePort(u.Port()),
+		User:     u.User.Username(),
+		Password: password,
+		DBName:   strings.TrimPrefix(u.Path, "/"),
+	}
+}
+
+func parsePort(s string) int {
+	p, _ := strconv.Atoi(s)
+	return p
 }
 
 func GenerateToken(userID uint) (string, time.Time, error) {
