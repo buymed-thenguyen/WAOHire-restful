@@ -14,7 +14,7 @@ auth:
 
 grpc:
   host: waohire-ws-production.up.railway.app
-  port: 50051
+  port: 443
 
 logger:
   path: logs/server.log
