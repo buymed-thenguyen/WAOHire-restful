@@ -429,7 +429,7 @@ func StartSession(c *gin.Context, sessionCode string) *response.DefaultResponse 
 	}
 
 	session.StartAt = utils.ToPointerTime(time.Now())
-	if err = db.UpdateSession(c, session); err != nil {
+	if err = db.UpdateSessionTx(c, session, tx); err != nil {
 		tx.Rollback()
 		logger.InternalServerError(c, err)
 		return nil
