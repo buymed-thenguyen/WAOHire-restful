@@ -49,6 +49,7 @@ var authCfg *Auth
 const _PATH = "./config.yml"
 
 func Load() (*Config, error) {
+	fmt.Println("✅ Loading config...")
 	data, err := os.ReadFile(_PATH)
 	if err != nil {
 		log.Printf("read config file: %w", err)

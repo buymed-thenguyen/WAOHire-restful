@@ -27,6 +27,7 @@ func Run() {
 
 	// logger
 	logger.InitLogger(cfg.Logger.Path)
+	fmt.Println("✅ Initiated logger")
 
 	// db
 	dbConn, err := gorm.Open(postgres.Open(cfg.Database.DSN()), &gorm.Config{})
@@ -49,6 +50,7 @@ func Run() {
 
 	// client
 	ws.InitGRPCClient(&cfg.Websocket)
+	fmt.Println("✅ Initiated grpc client")
 
 	// run server
 	if err = r.Run(":" + cfg.Port); err != nil {
