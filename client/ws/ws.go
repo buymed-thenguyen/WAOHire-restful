@@ -11,7 +11,7 @@ import (
 
 var grpcConn pb.BroadcasterClient
 
-func InitGRPCClient(cfg *config.Websocket) {
+func InitGRPCClient(cfg *config.GrpcClient) {
 	creds := credentials.NewClientTLSFromCert(nil, "")
 	conn, err := grpc.Dial(
 		fmt.Sprintf("%s:%s", cfg.Host, cfg.Port),

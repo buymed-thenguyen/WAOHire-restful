@@ -14,11 +14,11 @@ import (
 )
 
 type Config struct {
-	Port      string         `yaml:"port"`
-	Database  DatabaseConfig `yaml:"database"`
-	Auth      Auth           `yaml:"auth"`
-	Websocket Websocket      `yaml:"ws"`
-	Logger    *Logger        `yaml:"logger"`
+	Port       string         `yaml:"port"`
+	Database   DatabaseConfig `yaml:"database"`
+	Auth       Auth           `yaml:"auth"`
+	GrpcClient GrpcClient     `yaml:"grpc"`
+	Logger     *Logger        `yaml:"logger"`
 }
 
 type Logger struct {
@@ -30,7 +30,7 @@ type Auth struct {
 	Expire    int32  `yaml:"expire"`
 }
 
-type Websocket struct {
+type GrpcClient struct {
 	Host string `json:"host"`
 	Port string `json:"port"`
 }
@@ -50,9 +50,9 @@ const _FILE = "config.yml"
 
 func Load() (*Config, error) {
 	env := os.Getenv("ENV")
-	path := "./local/"
+	path := "./config/local/"
 	if env == "prd" {
-		path = "./prd/"
+		path = "./config/prd/"
 	}
 
 	fmt.Println("✅ Loading config...")

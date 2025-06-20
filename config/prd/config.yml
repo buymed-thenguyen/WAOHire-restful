@@ -12,8 +12,8 @@ auth:
   jwt_secret: secret-key-12345 # for demo purpose, should save in another place
   expire: 24                   # hour
 
-ws:
-  host: waohire-restful-production.up.railway.app
+grpc:
+  host: waohire-ws-production.up.railway.app
   port: 50051
 
 logger:

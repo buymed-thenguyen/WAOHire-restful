@@ -49,7 +49,7 @@ func Run() {
 	log.Println("🚀 Server running on :", cfg.Port)
 
 	// client
-	ws.InitGRPCClient(&cfg.Websocket)
+	ws.InitGRPCClient(&cfg.GrpcClient)
 	fmt.Println("✅ Initiated grpc client")
 
 	// run server

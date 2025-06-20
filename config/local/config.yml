@@ -12,7 +12,7 @@ auth:
   jwt_secret: secret-key-12345 # for demo purpose, should save in another place
   expire: 24                   # hour
 
-ws:
+grpc:
   host: localhost
   port: 50051
 
