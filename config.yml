@@ -13,7 +13,7 @@ auth:
   expire: 24                   # hour
 
 ws:
-  host: demo-quiz.com
+  host: waohire-ws-production.up.railway.app
   port: 50051
 
 logger:
