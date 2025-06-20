@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Phòng chờ</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f3f3f3; padding: 40px; text-align: center; }
+        .code-box { font-size: 24px; font-weight: bold; margin-bottom: 10px; color: #007bff; }
+        .quiz-info { margin-bottom: 30px; font-size: 18px; }
+        .participants { width: 300px; margin: auto; text-align: left; }
+        .user { padding: 10px; border-radius: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); margin-bottom: 8px; background: white; }
+        .user.me { background: #333; color: white; font-weight: bold; }
+        #start-btn, #back-btn { padding: 12px 24px; font-size: 16px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; margin-top: 20px; }
+        #start-btn:hover { background: #218838; }
+        #back-btn { background: #007bff; color: white }
+        #back-btn:hover { background: #0056b3; }
+        .logout-button {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            padding: 10px;
+            background: transparent;
+            color: #666; 
+            border: none;
+            cursor: pointer;
+            font-size: 24px;
+            transition: color 0.3s;
+        }
+
+        .logout-button i {
+            transform: rotate(180deg);
+            display: inline-block;
+        }
+
+        .logout-button:hover {
+            color: #333;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+<button class="logout-button" onclick="logout()" title="Đăng xuất">
+    <i class="fas fa-sign-out-alt"></i>
+</button>
+<div class="code-box" id="session-code">Mã phòng: ...</div>
+<div class="quiz-info" id="quiz-info">Đang tải thông tin...</div>
+<div class="participants" id="participant-list"></div>
+<button id="back-btn">Quay lại</button>
+<button id="start-btn" style="display: none;">Bắt đầu</button>
+
+<script>
+    const API_BASE_URL = window.location.hostname === 'localhost'
+        ? 'http://localhost:8080'
+        : 'https://btaskee.up.railway.app';
+    const WS_BASE_URL = window.location.hostname === 'localhost'
+        ? 'ws://localhost:8081'
+        : 'wss://btaskee.up.railway.app';
+
+    const token = localStorage.getItem('token')
+    if (!token) {
+        alert('Vui lòng đăng nhập');
+        location.href = '/'
+    }
+
+    function logout() {
+        localStorage.removeItem('token');
+        window.location.href = '/';
+    }
+    
+    const urlParams = new URLSearchParams(window.location.search)
+    const code = urlParams.get('code')
+    const userId = parseJwt(token).user_id
+
+    document.getElementById('session-code').innerText = `Mã phòng: ${code}`
+
+    // Load session info
+    fetch(`${API_BASE_URL}/session/${code}`, {
+        headers: { Authorization: `Bearer ${token}` }
+    })
+        .then(res => res.json())
+        .then(json => {
+            const quiz = json.data.quiz
+            document.getElementById('quiz-info').innerText = `Quiz: ${quiz.title} | ${quiz.total_question} câu hỏi`
+            if (json.data.created_by === userId) {
+                document.getElementById('start-btn').style.display = 'inline-block'
+            }
+        })
+
+    function loadParticipants() {
+        fetch(`${API_BASE_URL}/session/${code}/participants`, {
+            headers: { Authorization: `Bearer ${token}` }
+        })
+            .then(res => res.json())
+            .then(json => {
+                const list = document.getElementById('participant-list')
+                list.innerHTML = ''
+                json.data.forEach(p => {
+                    const div = document.createElement('div')
+                    div.className = 'user' + (p.user_id === userId ? ' me' : '')
+                    div.innerText = p.user_name
+                    list.appendChild(div)
+                })
+            })
+    }
+
+    // Call once when loaded
+    loadParticipants()
+
+    // WebSocket connect
+    const ws = new WebSocket(`${WS_BASE_URL}/ws/${code}`)
+    ws.onmessage = (event) => {
+        const msg = JSON.parse(event.data)
+        if (msg.event === 'user_joined' || msg.event === 'user_leaved') {
+            loadParticipants()
+        } else if (msg.event === 'start_session') {
+            window.location.href = `/question?code=${code}`
+        }
+    }
+
+    // Decode JWT helper
+    function parseJwt(t) {
+        try {
+            return JSON.parse(atob(t.split('.')[1]))
+        } catch (e) {
+            return {}
+        }
+    }
+
+    document.getElementById("start-btn").onclick = () => {
+        fetch(`${API_BASE_URL}/session/${code}/start`, {
+            method: "PUT",
+            headers: { Authorization: `Bearer ${token}` }
+        })
+            .then(res => {
+                if (!res.ok) throw new Error("Lỗi khi bắt đầu phiên chơi")
+            })
+            .catch(() => alert("Không thể bắt đầu phiên chơi"))
+    }
+
+    document.getElementById("back-btn").onclick = () => {
+        fetch(`${API_BASE_URL}/session/${code}/leave`, {
+            method: "PUT",
+            headers: { Authorization: `Bearer ${token}` }
+        })
+            .then(res => {
+                if (!res.ok) throw new Error("Lỗi khi rời phiên chơi")
+                else
+                    window.location.href = `/quizzes`
+            })
+            .catch(() => alert("Không thể rời phiên chơi"))
+    }
+
+</script>
+</body>
+</html>
