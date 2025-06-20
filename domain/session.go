@@ -1,7 +1,6 @@
 package domain
 
 import (
-	"backend-api/client/ws"
 	"backend-api/db"
 	"backend-api/model/constant"
 	"backend-api/model/request"
@@ -9,6 +8,7 @@ import (
 	"backend-api/utils"
 	"backend-api/utils/logger"
 	"github.com/gin-gonic/gin"
+	"log"
 	"math/rand"
 	"strings"
 	"time"
@@ -97,8 +97,13 @@ func JoinSessionByCode(c *gin.Context, sessionCode string) *response.Participant
 		return nil
 	}
 	if participant != nil {
-		logger.BadRequest(c, "user already joined")
-		return nil
+		log.Printf("user already joined")
+		return &response.Participant{
+			UserID:    userID,
+			QuizID:    session.QuizID,
+			SessionID: session.ID,
+			UserName:  user.Name,
+		}
 	}
 
 	participant = &dbModel.Participant{
@@ -111,7 +116,9 @@ func JoinSessionByCode(c *gin.Context, sessionCode string) *response.Participant
 		return nil
 	}
 
-	ws.UserJoinedWs(c, session.Code)
+	//ws.UserJoinedWs(c, session.Code)
+	d.WsHttpClient.UserJoinedWs(c, session.Code)
+
 	return &response.Participant{
 		UserID:    userID,
 		QuizID:    session.QuizID,
@@ -171,7 +178,8 @@ func LeaveSessionByCode(c *gin.Context, sessionCode string) *response.Participan
 		return nil
 	}
 
-	ws.UserLeavedWs(c, session.Code)
+	//ws.UserLeavedWs(c, session.Code)
+	d.WsHttpClient.UserLeavedWs(c, session.Code)
 	return &response.Participant{
 		UserID:    userID,
 		QuizID:    session.QuizID,
@@ -292,7 +300,9 @@ func SubmitAnswer(c *gin.Context, sessionCode string, req *request.SubmitAnswer)
 		return nil
 	}
 
-	ws.SubmitAnswerWs(c, userID, sessionCode)
+	//ws.SubmitAnswerWs(c, userID, sessionCode)
+	d.WsHttpClient.UserAnsweredWs(c, userID, sessionCode)
+
 	return &response.DefaultResponse{
 		Message: "ok",
 	}
@@ -369,7 +379,8 @@ func StartSession(c *gin.Context, sessionCode string) *response.DefaultResponse 
 		return nil
 	}
 
-	ws.StartSessionWs(c, userID, sessionCode)
+	//ws.StartSessionWs(c, userID, sessionCode)
+	d.WsHttpClient.StartSessionWs(c, userID, sessionCode)
 	return &response.DefaultResponse{
 		Message: "ok",
 	}

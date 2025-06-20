@@ -12,9 +12,10 @@ auth:
   jwt_secret: secret-key-12345 # for demo purpose, should save in another place
   expire: 24                   # hour
 
-grpc:
-  host: waohire-ws-production.up.railway.app
-  port: 443
+ws:
+  host: https://waohire-ws-production.up.railway.app
+  port: 8081
+  grpc_port: 443
 
 logger:
   path: logs/server.log

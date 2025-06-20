@@ -14,11 +14,11 @@ import (
 )
 
 type Config struct {
-	Port       string         `yaml:"port"`
-	Database   DatabaseConfig `yaml:"database"`
-	Auth       Auth           `yaml:"auth"`
-	GrpcClient GrpcClient     `yaml:"grpc"`
-	Logger     *Logger        `yaml:"logger"`
+	Port      string         `yaml:"port"`
+	Database  DatabaseConfig `yaml:"database"`
+	Auth      Auth           `yaml:"auth"`
+	Websocket Websocket      `yaml:"ws"`
+	Logger    *Logger        `yaml:"logger"`
 }
 
 type Logger struct {
@@ -30,9 +30,10 @@ type Auth struct {
 	Expire    int32  `yaml:"expire"`
 }
 
-type GrpcClient struct {
-	Host string `json:"host"`
-	Port string `json:"port"`
+type Websocket struct {
+	Host     string `json:"host"`
+	GrpcPort string `json:"grpc_port"`
+	Port     string `json:"port"`
 }
 
 type DatabaseConfig struct {

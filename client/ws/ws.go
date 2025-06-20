@@ -12,7 +12,7 @@ import (
 
 var grpcConn pb.BroadcasterClient
 
-func InitGRPCClient(cfg *config.GrpcClient) {
+func InitGRPCClient(cfg *config.Websocket) {
 	var opts []grpc.DialOption
 
 	if os.Getenv("ENV") == "prd" {
@@ -25,7 +25,7 @@ func InitGRPCClient(cfg *config.GrpcClient) {
 	}
 
 	conn, err := grpc.Dial(
-		fmt.Sprintf("%s:%s", cfg.Host, cfg.Port),
+		fmt.Sprintf("%s:%s", cfg.Host, cfg.GrpcPort),
 		opts...,
 	)
 	if err != nil {

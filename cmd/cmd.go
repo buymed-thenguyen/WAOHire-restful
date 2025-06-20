@@ -1,9 +1,11 @@
 package cmd
 
 import (
+	"backend-api/client/http"
 	"backend-api/client/ws"
 	"backend-api/config"
 	"backend-api/db"
+	"backend-api/domain"
 	"backend-api/handler"
 	"backend-api/utils/logger"
 	"fmt"
@@ -49,8 +51,10 @@ func Run() {
 	log.Println("🚀 Server running on :", cfg.Port)
 
 	// client
-	ws.InitGRPCClient(&cfg.GrpcClient)
+	ws.InitGRPCClient(&cfg.Websocket)
 	fmt.Println("✅ Initiated grpc client")
+	wsClient := http.NewWSClient(cfg.Websocket.Host, cfg.Websocket.Port)
+	domain.NewDomain(wsClient)
 
 	// run server
 	if err = r.Run(":" + cfg.Port); err != nil {
