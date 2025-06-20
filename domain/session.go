@@ -76,16 +76,22 @@ func JoinSessionByCode(c *gin.Context, sessionCode string) *response.Participant
 		return nil
 	}
 
-	session, err := db.GetSessionByCode(c, sessionCode)
+	tx := db.BeginTx()
+	defer tx.Commit()
+
+	session, err := db.GetSessionByCodeForUpdate(c, sessionCode, tx)
 	if err != nil {
+		tx.Rollback()
 		logger.InternalServerError(c, err)
 		return nil
 	}
 	if session == nil {
+		tx.Rollback()
 		logger.NotFound(c, "session not found")
 		return nil
 	}
 	if session.StartAt != nil && session.StartAt.Before(time.Now()) {
+		tx.Rollback()
 		logger.BadRequest(c, "session already started")
 		return nil
 	}
@@ -93,6 +99,7 @@ func JoinSessionByCode(c *gin.Context, sessionCode string) *response.Participant
 	// Check if participant already exists
 	participant, err := db.GetParticipantByUserIDSessionID(c, userID, session.ID)
 	if err != nil {
+		tx.Rollback()
 		logger.InternalServerError(c, err)
 		return nil
 	}
@@ -111,13 +118,20 @@ func JoinSessionByCode(c *gin.Context, sessionCode string) *response.Participant
 		QuizID:    session.QuizID,
 		SessionID: session.ID,
 	}
-	if err = db.CreateParticipant(c, participant); err != nil {
+	if err = db.CreateParticipantTx(c, participant, tx); err != nil {
+		tx.Rollback()
 		logger.InternalServerError(c, err)
 		return nil
 	}
 
-	//ws.UserJoinedWs(c, session.Code)
-	d.WsHttpClient.UserJoinedWs(c, session.Code)
+	//if err = ws.UserJoinedWs(c, session.Code); err != nil {
+	//	tx.Rollback()
+	//	return nil
+	//}
+	if err = d.WsHttpClient.UserJoinedWs(c, session.Code); err != nil {
+		tx.Rollback()
+		return nil
+	}
 
 	return &response.Participant{
 		UserID:    userID,
@@ -143,16 +157,22 @@ func LeaveSessionByCode(c *gin.Context, sessionCode string) *response.Participan
 		return nil
 	}
 
-	session, err := db.GetSessionByCode(c, sessionCode)
+	tx := db.BeginTx()
+	defer tx.Commit()
+
+	session, err := db.GetSessionByCodeForUpdate(c, sessionCode, tx)
 	if err != nil {
+		tx.Rollback()
 		logger.InternalServerError(c, err)
 		return nil
 	}
 	if session == nil {
+		tx.Rollback()
 		logger.NotFound(c, "session not found")
 		return nil
 	}
 	if session.StartAt != nil && session.StartAt.Before(time.Now()) {
+		tx.Rollback()
 		logger.BadRequest(c, "session already started")
 		return nil
 	}
@@ -160,10 +180,12 @@ func LeaveSessionByCode(c *gin.Context, sessionCode string) *response.Participan
 	// Check if participant already exists
 	participant, err := db.GetParticipantByUserIDSessionID(c, userID, session.ID)
 	if err != nil {
+		tx.Rollback()
 		logger.InternalServerError(c, err)
 		return nil
 	}
 	if participant == nil {
+		tx.Rollback()
 		logger.BadRequest(c, "user not join yet")
 		return nil
 	}
@@ -173,13 +195,21 @@ func LeaveSessionByCode(c *gin.Context, sessionCode string) *response.Participan
 		QuizID:    session.QuizID,
 		SessionID: session.ID,
 	}
-	if err = db.RemoveParticipant(c, participant); err != nil {
+	if err = db.RemoveParticipantTx(c, participant, tx); err != nil {
+		tx.Rollback()
 		logger.InternalServerError(c, err)
 		return nil
 	}
 
-	//ws.UserLeavedWs(c, session.Code)
-	d.WsHttpClient.UserLeavedWs(c, session.Code)
+	//if err = ws.UserLeavedWs(c, session.Code); err != nil {
+	//	tx.Rollback()
+	//	return nil
+	//}
+	if err = d.WsHttpClient.UserLeavedWs(c, session.Code); err != nil {
+		tx.Rollback()
+		return nil
+	}
+
 	return &response.Participant{
 		UserID:    userID,
 		QuizID:    session.QuizID,
@@ -241,36 +271,46 @@ func SubmitAnswer(c *gin.Context, sessionCode string, req *request.SubmitAnswer)
 		return nil
 	}
 
-	session, err := db.GetSessionByCode(c, sessionCode)
+	tx := db.BeginTx()
+	defer tx.Commit()
+
+	session, err := db.GetSessionByCodeForUpdate(c, sessionCode, tx)
 	if err != nil {
+		tx.Rollback()
 		logger.InternalServerError(c, err)
 		return nil
 	}
 	if session == nil {
+		tx.Rollback()
 		logger.NotFound(c, "session not found")
 		return nil
 	}
 	if session.StartAt == nil || session.StartAt.After(time.Now()) {
+		tx.Rollback()
 		logger.BadRequest(c, "session not start yet")
 		return nil
 	}
 
 	participant, err := db.GetParticipantByUserIDSessionID(c, userID, session.ID)
 	if err != nil {
+		tx.Rollback()
 		logger.InternalServerError(c, err)
 		return nil
 	}
 	if participant == nil {
+		tx.Rollback()
 		logger.NotFound(c, "participant not found")
 		return nil
 	}
 	if participant.DoneAt != nil && !participant.DoneAt.IsZero() {
+		tx.Rollback()
 		logger.BadRequest(c, "participant already done")
 		return nil
 	}
 
 	totalScore, correctAnswerMap, err := calculateScore(c, session, req.Answers)
 	if err != nil {
+		tx.Rollback()
 		return nil
 	}
 
@@ -280,6 +320,7 @@ func SubmitAnswer(c *gin.Context, sessionCode string, req *request.SubmitAnswer)
 
 	err = db.UpdateParticipant(c, participant)
 	if err != nil {
+		tx.Rollback()
 		logger.InternalServerError(c, err)
 		return nil
 	}
@@ -294,14 +335,21 @@ func SubmitAnswer(c *gin.Context, sessionCode string, req *request.SubmitAnswer)
 			IsCorrect:      isCorrect,
 		}
 	})
-	err = db.CreateParticipantAnswers(c, participantAnswers)
+	err = db.CreateParticipantAnswersTx(c, participantAnswers, tx)
 	if err != nil {
+		tx.Rollback()
 		logger.InternalServerError(c, err)
 		return nil
 	}
 
-	//ws.SubmitAnswerWs(c, userID, sessionCode)
-	d.WsHttpClient.UserAnsweredWs(c, userID, sessionCode)
+	//if err = ws.SubmitAnswerWs(c, userID, sessionCode); err != nil {
+	//	tx.Rollback()
+	//	return nil
+	//}
+	if err = d.WsHttpClient.UserAnsweredWs(c, userID, sessionCode); err != nil {
+		tx.Rollback()
+		return nil
+	}
 
 	return &response.DefaultResponse{
 		Message: "ok",
@@ -355,32 +403,46 @@ func StartSession(c *gin.Context, sessionCode string) *response.DefaultResponse 
 		return nil
 	}
 
-	session, err := db.GetSessionByCode(c, sessionCode)
+	tx := db.BeginTx()
+	defer tx.Commit()
+
+	session, err := db.GetSessionByCodeForUpdate(c, sessionCode, tx)
 	if err != nil {
+		tx.Rollback()
 		logger.InternalServerError(c, err)
 		return nil
 	}
 	if session == nil {
+		tx.Rollback()
 		logger.NotFound(c, "session not found")
 		return nil
 	}
 	if session.CreatedBy != userID {
+		tx.Rollback()
 		logger.BadRequest(c, "session not created by user")
 		return nil
 	}
 	if session.StartAt != nil && session.StartAt.Before(time.Now()) {
+		tx.Rollback()
 		logger.BadRequest(c, "session already started")
 		return nil
 	}
 
 	session.StartAt = utils.ToPointerTime(time.Now())
 	if err = db.UpdateSession(c, session); err != nil {
+		tx.Rollback()
 		logger.InternalServerError(c, err)
 		return nil
 	}
 
-	//ws.StartSessionWs(c, userID, sessionCode)
-	d.WsHttpClient.StartSessionWs(c, userID, sessionCode)
+	//if err = ws.StartSessionWs(c, userID, sessionCode); err != nil {
+	//	tx.Rollback()
+	//	return nil
+	//}
+	if err = d.WsHttpClient.StartSessionWs(c, userID, sessionCode); err != nil {
+		tx.Rollback()
+		return nil
+	}
 	return &response.DefaultResponse{
 		Message: "ok",
 	}

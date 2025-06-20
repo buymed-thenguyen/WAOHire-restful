@@ -7,3 +7,7 @@ var DB *gorm.DB
 func InjectDB(db *gorm.DB) {
 	DB = db
 }
+
+func BeginTx() *gorm.DB {
+	return DB.Begin()
+}

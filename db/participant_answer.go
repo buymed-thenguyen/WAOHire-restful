@@ -24,3 +24,7 @@ func GetParticipantAnswersByParticipantID(c *gin.Context, participantID uint) ([
 func CreateParticipantAnswers(c *gin.Context, answers []*dbModel.ParticipantAnswer) error {
 	return DB.WithContext(c.Request.Context()).Create(&answers).Error
 }
+
+func CreateParticipantAnswersTx(c *gin.Context, answers []*dbModel.ParticipantAnswer, tx *gorm.DB) error {
+	return tx.WithContext(c.Request.Context()).Create(&answers).Error
+}

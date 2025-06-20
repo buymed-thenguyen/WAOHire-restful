@@ -11,29 +11,31 @@ type BroadcastRequest struct {
 	QuizID      uint   `json:"quiz_id"`
 }
 
-func (c *WSClient) UserJoinedWs(ctx *gin.Context, sessionCode string) {
+func (c *WSClient) UserJoinedWs(ctx *gin.Context, sessionCode string) error {
 	req := &BroadcastRequest{
 		SessionCode: sessionCode,
 	}
 	err := c.Post("/ws/user-joined", req)
 	if err != nil {
 		logger.InternalServerError(ctx, err)
-		// continue
+		return err
 	}
+	return nil
 }
 
-func (c *WSClient) UserLeavedWs(ctx *gin.Context, sessionCode string) {
+func (c *WSClient) UserLeavedWs(ctx *gin.Context, sessionCode string) error {
 	req := &BroadcastRequest{
 		SessionCode: sessionCode,
 	}
 	err := c.Post("/ws/user-leaved", req)
 	if err != nil {
 		logger.InternalServerError(ctx, err)
-		// continue
+		return err
 	}
+	return nil
 }
 
-func (c *WSClient) UserAnsweredWs(ctx *gin.Context, userID uint, sessionCode string) {
+func (c *WSClient) UserAnsweredWs(ctx *gin.Context, userID uint, sessionCode string) error {
 	req := &BroadcastRequest{
 		UserID:      userID,
 		SessionCode: sessionCode,
@@ -41,11 +43,12 @@ func (c *WSClient) UserAnsweredWs(ctx *gin.Context, userID uint, sessionCode str
 	err := c.Post("/ws/user-answered", req)
 	if err != nil {
 		logger.InternalServerError(ctx, err)
-		// continue
+		return err
 	}
+	return nil
 }
 
-func (c *WSClient) StartSessionWs(ctx *gin.Context, quizID uint, sessionCode string) {
+func (c *WSClient) StartSessionWs(ctx *gin.Context, quizID uint, sessionCode string) error {
 	req := &BroadcastRequest{
 		QuizID:      quizID,
 		SessionCode: sessionCode,
@@ -53,6 +56,7 @@ func (c *WSClient) StartSessionWs(ctx *gin.Context, quizID uint, sessionCode str
 	err := c.Post("/ws/start-session", req)
 	if err != nil {
 		logger.InternalServerError(ctx, err)
-		// continue
+		return err
 	}
+	return nil
 }

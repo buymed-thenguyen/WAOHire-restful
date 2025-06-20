@@ -11,8 +11,19 @@ func CreateParticipant(c *gin.Context, participant *dbModel.Participant) error {
 	return DB.WithContext(c.Request.Context()).Create(&participant).Error
 }
 
+func CreateParticipantTx(c *gin.Context, participant *dbModel.Participant, tx *gorm.DB) error {
+	return tx.WithContext(c.Request.Context()).Create(&participant).Error
+}
+
 func RemoveParticipant(c *gin.Context, participant *dbModel.Participant) error {
 	return DB.WithContext(c.Request.Context()).
+		Where("session_id = ?", participant.SessionID).
+		Where("user_id = ?", participant.UserID).
+		Delete(&participant).Error
+}
+
+func RemoveParticipantTx(c *gin.Context, participant *dbModel.Participant, tx *gorm.DB) error {
+	return tx.WithContext(c.Request.Context()).
 		Where("session_id = ?", participant.SessionID).
 		Where("user_id = ?", participant.UserID).
 		Delete(&participant).Error
@@ -49,6 +60,10 @@ func GetParticipantBySessionID(c *gin.Context, sessionID uint) ([]*dbModel.Parti
 
 func UpdateParticipant(c *gin.Context, participant *dbModel.Participant) error {
 	return DB.WithContext(c.Request.Context()).Save(participant).Error
+}
+
+func UpdateParticipantTx(c *gin.Context, participant *dbModel.Participant, tx *gorm.DB) error {
+	return tx.WithContext(c.Request.Context()).Save(participant).Error
 }
 
 func GetSessionLeaderboard(c *gin.Context, sessionID uint) ([]*dbModel.Participant, error) {
