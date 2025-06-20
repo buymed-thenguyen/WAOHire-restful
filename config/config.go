@@ -46,11 +46,17 @@ type DatabaseConfig struct {
 
 var authCfg *Auth
 
-const _PATH = "./config.yml"
+const _FILE = "config.yml"
 
 func Load() (*Config, error) {
+	env := os.Getenv("ENV")
+	path := "./local/"
+	if env == "prd" {
+		path = "./prd/"
+	}
+
 	fmt.Println("✅ Loading config...")
-	data, err := os.ReadFile(_PATH)
+	data, err := os.ReadFile(path + _FILE)
 	if err != nil {
 		log.Printf("read config file: %w", err)
 		return nil, err
@@ -68,9 +74,11 @@ func Load() (*Config, error) {
 	}
 
 	// fallback for deploy Railway
-	envURL := os.Getenv("DATABASE_URL")
-	if envURL != "" {
-		appConfig.Database = fallbackDBConfigForRailway(envURL)
+	if env == "prd" {
+		envURL := os.Getenv("DATABASE_URL")
+		if envURL != "" {
+			appConfig.Database = fallbackDBConfigForRailway(envURL)
+		}
 	}
 
 	authCfg = &appConfig.Auth
