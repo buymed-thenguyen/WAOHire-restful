@@ -2,7 +2,7 @@ module backend-api
 
 go 1.24.4
 
-replace backend-ws => ../ws
+replace backend-ws => github.com/buymed-thenguyen/WAOHire-WS v0.0.1
 
 require (
 	backend-ws v0.0.0-00010101000000-000000000000
