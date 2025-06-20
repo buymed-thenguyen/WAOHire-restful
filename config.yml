@@ -13,7 +13,7 @@ auth:
   expire: 24                   # hour
 
 ws:
-  host: localhost
+  host: demo-quiz.com
   port: 50051
 
 logger:
