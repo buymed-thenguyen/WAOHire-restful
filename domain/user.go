@@ -38,7 +38,7 @@ func Login(c *gin.Context, user *reqModel.User) *response.Token {
 	}
 
 	if err = bcrypt.CompareHashAndPassword([]byte(existsUser.Password), []byte(user.Password)); err != nil {
-		logger.Unauthorized(c)
+		logger.BadRequest(c, "wrong password")
 		return nil
 	}
 
