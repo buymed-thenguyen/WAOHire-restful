@@ -14,7 +14,7 @@ auth:
 
 ws:
   host: waohire-ws-production.up.railway.app
-  port: 50051
+  port: 80
 
 logger:
   path: logs/server.log
