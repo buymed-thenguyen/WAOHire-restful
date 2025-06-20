@@ -14,7 +14,7 @@ auth:
 
 ws:
   host: https://waohire-ws-production.up.railway.app
-  port: 8081
+  port:
   grpc_port: 443
 
 logger:

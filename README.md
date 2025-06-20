@@ -17,7 +17,7 @@ $ go run main.go
 
 ### Demo link: 
 
-https://waohire-restful-production.up.railway.app/
+https://waohire-quiz.up.railway.app
 
 ### Account:
 >user1 <br>

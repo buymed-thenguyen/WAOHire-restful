@@ -80,6 +80,7 @@ func Load() (*Config, error) {
 		if envURL != "" {
 			appConfig.Database = fallbackDBConfigForRailway(envURL)
 		}
+		appConfig.Websocket.Port = ""
 	}
 
 	authCfg = &appConfig.Auth

@@ -14,8 +14,11 @@ type WSClient struct {
 }
 
 func NewWSClient(host, port string) *WSClient {
+	if port != "" {
+		port = ":" + port
+	}
 	return &WSClient{
-		BaseURL: fmt.Sprintf("%s:%s", host, port),
+		BaseURL: fmt.Sprintf("%s%s", host, port),
 		Client:  &http.Client{},
 	}
 }
