@@ -2,6 +2,10 @@ package db
 
 import (
 	dbModel "backend-api/model/db"
+	"backend-api/utils/logger"
+	"errors"
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type RawQuiz struct {
@@ -15,7 +19,20 @@ type RawQuestion struct {
 	Answer  int
 }
 
-func SeedQuizzesFullSet() error {
+func SeedQuizzesFullSet(c *gin.Context) error {
+	var existing *dbModel.Quiz
+	err := DB.First(&existing).Error
+	if !errors.Is(err, gorm.ErrRecordNotFound) {
+		if err != nil {
+			logger.InternalServerError(c, err)
+			return err
+		}
+		if existing != nil {
+			logger.BadRequest(c, "already seeded")
+			return nil
+		}
+	}
+
 	quizzes := []RawQuiz{
 		{
 			Title:     "Tiếng Anh cơ bản",
@@ -86,11 +103,13 @@ func SeedQuizzesFullSet() error {
 	for _, raw := range quizzes {
 		quiz := dbModel.Quiz{Title: raw.Title}
 		if err := DB.Create(&quiz).Error; err != nil {
+			logger.InternalServerError(c, err)
 			return err
 		}
 		for _, q := range raw.Questions {
 			question := dbModel.Question{QuizID: quiz.ID, QuestionText: q.Text, Score: 1}
 			if err := DB.Create(&question).Error; err != nil {
+				logger.InternalServerError(c, err)
 				return err
 			}
 			for i, opt := range q.Options {
@@ -100,6 +119,7 @@ func SeedQuizzesFullSet() error {
 					IsCorrect:  i == q.Answer,
 				}
 				if err := DB.Create(&ans).Error; err != nil {
+					logger.InternalServerError(c, err)
 					return err
 				}
 			}

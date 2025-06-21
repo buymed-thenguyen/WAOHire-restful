@@ -6,6 +6,7 @@ import (
 	reqModel "backend-api/model/request"
 	"backend-api/utils/logger"
 	"github.com/gin-gonic/gin"
+	"strings"
 )
 
 func CreateSessionWithQuizID(c *gin.Context) {
@@ -19,22 +20,22 @@ func CreateSessionWithQuizID(c *gin.Context) {
 }
 
 func JoinSessionByCode(c *gin.Context) {
-	sessionCode := c.Param("code")
+	sessionCode := strings.TrimSpace(c.Param("code"))
 	c.Set(constant.DATA_CTX, domain.JoinSessionByCode(c, sessionCode))
 }
 
 func LeaveSessionByCode(c *gin.Context) {
-	sessionCode := c.Param("code")
+	sessionCode := strings.TrimSpace(c.Param("code"))
 	c.Set(constant.DATA_CTX, domain.LeaveSessionByCode(c, sessionCode))
 }
 
 func GetLeaderboardBySession(c *gin.Context) {
-	sessionCode := c.Param("code")
+	sessionCode := strings.TrimSpace(c.Param("code"))
 	c.Set(constant.DATA_CTX, domain.GetLeaderboardBySession(c, sessionCode))
 }
 
 func SubmitAnswer(c *gin.Context) {
-	sessionCode := c.Param("code")
+	sessionCode := strings.TrimSpace(c.Param("code"))
 	var req *reqModel.SubmitAnswer
 	if err := c.ShouldBindJSON(&req); err != nil {
 		logger.BadRequest(c, err.Error())
@@ -45,21 +46,21 @@ func SubmitAnswer(c *gin.Context) {
 }
 
 func StartSession(c *gin.Context) {
-	sessionCode := c.Param("code")
+	sessionCode := strings.TrimSpace(c.Param("code"))
 	c.Set(constant.DATA_CTX, domain.StartSession(c, sessionCode))
 }
 
 func GetSessionDetail(c *gin.Context) {
-	sessionCode := c.Param("code")
+	sessionCode := strings.TrimSpace(c.Param("code"))
 	c.Set(constant.DATA_CTX, domain.GetSessionDetail(c, sessionCode))
 }
 
 func GetSessionParticipants(c *gin.Context) {
-	sessionCode := c.Param("code")
+	sessionCode := strings.TrimSpace(c.Param("code"))
 	c.Set(constant.DATA_CTX, domain.GetSessionParticipants(c, sessionCode))
 }
 
 func GetSessionParticipantAnswers(c *gin.Context) {
-	sessionCode := c.Param("code")
+	sessionCode := strings.TrimSpace(c.Param("code"))
 	c.Set(constant.DATA_CTX, domain.GetSessionParticipantAnswers(c, sessionCode))
 }

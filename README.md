@@ -26,6 +26,13 @@ password: abcd
 >admin <br>
 password: admin
 
+### Seed data
+
+Seed data bộ câu hỏi
+
+```
+curl --location --request POST 'http://localhost:8080/seed'
+```
 ### Database
 
 ![DB diagram](template/db_diagram.png)
