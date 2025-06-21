@@ -28,7 +28,7 @@ password: admin
 
 ### Database
 
-![DB diagram](template/diagram/db_diagram.png)
+![DB diagram](template/db_diagram.png)
 
 
 * <code>users</code>: thông tin người dùng
