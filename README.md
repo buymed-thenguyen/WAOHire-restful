@@ -17,7 +17,7 @@ $ go run main.go
 
 ### Demo link: 
 
-https://waohire-quiz.up.railway.app
+https://demo-quiz.up.railway.app
 
 ### Account:
 >user1 <br>

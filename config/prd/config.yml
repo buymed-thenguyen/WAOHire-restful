@@ -13,7 +13,7 @@ auth:
   expire: 24                   # hour
 
 ws:
-  host: https://waohire-ws-production.up.railway.app
+  host: https://demo-quiz.up.railway.app
   port:
   grpc_port: 443
 
